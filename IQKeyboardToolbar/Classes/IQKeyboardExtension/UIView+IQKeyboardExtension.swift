@@ -143,12 +143,15 @@ public extension IQKeyboardExtension where Base: IQTextInputView {
         //  Creating a toolBar for phoneNumber keyboard
         let toolbar: IQKeyboardToolbar = toolbar
 
-        let items: [UIBarButtonItem] = Self.constructBarButtonItems(target: target, toolbar: toolbar,
-                                                                    previousConfiguration: previousConfiguration,
-                                                                    nextConfiguration: nextConfiguration,
-                                                                    rightConfiguration: rightConfiguration,
-                                                                    title: title,
-                                                                    titleAccessibilityLabel: titleAccessibilityLabel)
+        let items: [UIBarButtonItem] = Self.constructBarButtonItems(
+            target: target,
+            toolbar: toolbar,
+            previousConfiguration: previousConfiguration,
+            nextConfiguration: nextConfiguration,
+            rightConfiguration: rightConfiguration,
+            title: title,
+            titleAccessibilityLabel: titleAccessibilityLabel
+        )
 
         //  Adding button to toolBar.
         toolbar.items = items
@@ -161,10 +164,40 @@ public extension IQKeyboardExtension where Base: IQTextInputView {
         }
 
         //  Setting toolbar to keyboard.
-        let reloadInputViews: Bool = base.inputAccessoryView != toolbar
-        guard reloadInputViews else { return }
-
-        base.inputAccessoryView = toolbar
+        let needsReload: Bool = {
+            // Check if we need to reload - either no accessory view, or accessory view doesn't contain our toolbar
+            if let currentAccessoryView = base.inputAccessoryView {
+                return !currentAccessoryView.subviews.contains(toolbar)
+            }
+            return true
+        }()
+        
+        guard needsReload else { return }
+        
+        if #available(iOS 26.0, *) {
+            // Create container view with padding
+            let containerView = UIView()
+            containerView.translatesAutoresizingMaskIntoConstraints = false
+            
+            // Add toolbar to container
+            toolbar.translatesAutoresizingMaskIntoConstraints = false
+            containerView.addSubview(toolbar)
+            
+            // Set up constraints for toolbar within container
+            NSLayoutConstraint.activate([
+                toolbar.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                toolbar.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                toolbar.topAnchor.constraint(equalTo: containerView.topAnchor),
+                toolbar.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -16) // 16 points padding from bottom
+            ])
+            
+            // Calculate container height (toolbar height + padding)
+            let containerHeight: CGFloat = 44 + 16 // toolbar height + bottom padding
+            containerView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: containerHeight)
+            base.inputAccessoryView = containerView
+        } else {
+            base.inputAccessoryView = toolbar
+        }
 
         base.reloadInputViews()
     }
