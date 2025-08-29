@@ -350,13 +350,15 @@ private extension IQKeyboardExtension where Base: IQTextInputView {
             items.append(IQBarButtonItem.flexibleBarButtonItem)
 
             // Title button
-            toolbar.titleBarButton.title = title
-            toolbar.titleBarButton.accessibilityLabel = titleAccessibilityLabel
-            toolbar.titleBarButton.accessibilityIdentifier = titleAccessibilityLabel
+            if let title {
+                toolbar.titleBarButton.title = title
+                toolbar.titleBarButton.accessibilityLabel = titleAccessibilityLabel
+                toolbar.titleBarButton.accessibilityIdentifier = titleAccessibilityLabel
 
-            toolbar.titleBarButton.customView?.frame = .zero
+                toolbar.titleBarButton.customView?.frame = .zero
 
-            items.append(toolbar.titleBarButton)
+                items.append(toolbar.titleBarButton)
+            }
 
             // Flexible space
             items.append(IQBarButtonItem.flexibleBarButtonItem)
